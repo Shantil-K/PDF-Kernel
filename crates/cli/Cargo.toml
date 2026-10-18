@@ -1,0 +1,30 @@
+[package]
+name = "pdf-kernel-cli"
+description = "pdfk: command line, stdio JSON protocol and optional HTTP API for pdf-kernel."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "pdfk"
+path = "src/main.rs"
+
+[features]
+default = ["http"]
+# Build without it (`--no-default-features`) for a smaller binary with no server code.
+http = ["dep:axum", "dep:tower-http"]
+
+[dependencies]
+pdf-kernel.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+clap = { version = "4", features = ["derive", "env"] }
+axum = { version = "0.8", optional = true }
+tower-http = { version = "0.6", features = ["cors"], optional = true }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_Threading"] }

@@ -1,0 +1,15 @@
+[package]
+name = "pdf-kernel-ffi"
+description = "C ABI for pdf-kernel, for embedding in Swift, C#, Kotlin/JNI, C++, Python, Dart and others."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "pdf_kernel"
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+pdf-kernel.workspace = true
+tokio.workspace = true
+serde_json.workspace = true

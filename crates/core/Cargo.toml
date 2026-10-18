@@ -1,0 +1,22 @@
+[package]
+name = "pdf-kernel"
+description = "Core engine: PDF text extraction, retrieval, summarization and Q&A over Groq, Gemini and LM Studio."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "pdf_kernel"
+
+[dependencies]
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+pdf-extract = "0.7"
+thiserror = "2"
+futures = "0.3"
+base64 = "0.22"
+uuid = { version = "1", features = ["v4"] }
+dotenvy = "0.15"
+dirs = "5"
