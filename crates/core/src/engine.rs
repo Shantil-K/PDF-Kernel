@@ -1,5 +1,5 @@
 use crate::chunk::{chunk_pages, Chunk};
-use crate::config::Config;
+use crate::config::{Config, ProviderConfig};
 use crate::error::{Error, Result};
 use crate::provider::{ChatMessage, ChatOptions, Completion, ProviderStatus, Router};
 use crate::search::Bm25;
@@ -131,7 +131,7 @@ struct Section {
 /// The engine. Cheap to share behind an `Arc`; every method takes `&self`.
 pub struct Engine {
     cfg: Config,
-    router: Router,
+    router: RwLock<Arc<Router>>,
     docs: RwLock<HashMap<String, Arc<Document>>>,
 }
 
@@ -139,7 +139,7 @@ impl Engine {
     pub fn new(mut cfg: Config) -> Result<Self> {
         cfg.normalize();
         let router = Router::new(&cfg)?;
-        Ok(Self { cfg, router, docs: RwLock::new(HashMap::new()) })
+        Ok(Self { cfg, router: RwLock::new(Arc::new(router)), docs: RwLock::new(HashMap::new()) })
     }
 
     pub fn from_env() -> Result<Self> {
@@ -151,7 +151,21 @@ impl Engine {
     }
 
     pub fn providers(&self) -> Vec<ProviderStatus> {
-        self.router.status()
+        self.router().status()
+    }
+
+    /// Replace the provider list (for example after the user edits their API
+    /// keys). Loaded documents are kept; requests already running finish on
+    /// the old providers.
+    pub fn set_providers(&self, providers: Vec<ProviderConfig>) -> Result<()> {
+        let cfg = Config { providers, ..self.cfg.clone() };
+        let router = Router::new(&cfg)?;
+        *self.router.write().unwrap_or_else(|e| e.into_inner()) = Arc::new(router);
+        Ok(())
+    }
+
+    fn router(&self) -> Arc<Router> {
+        self.router.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     pub async fn load_pdf_file(&self, path: impl AsRef<Path>) -> Result<DocumentInfo> {
@@ -256,7 +270,7 @@ impl Engine {
         };
 
         let c = self
-            .router
+            .router()
             .chat(&prompts::final_summary(&doc.name, style, &source_text, sections > 1), &opts)
             .await?;
         Ok(Summary {
@@ -324,7 +338,7 @@ impl Engine {
         history.drain(..history.len().saturating_sub(HISTORY_TURNS));
         let messages = prompts::question(&doc.name, &context, question, used_full_document, history);
         let chat_opts = ChatOptions { provider: opts.provider, temperature: 0.1, max_tokens: None };
-        let c: Completion = self.router.chat(&messages, &chat_opts).await?;
+        let c: Completion = self.router().chat(&messages, &chat_opts).await?;
         Ok(Answer {
             document_id: doc.id.clone(),
             text: c.text,
@@ -341,11 +355,13 @@ impl Engine {
         opts: &ChatOptions,
     ) -> Result<Vec<String>> {
         let sem = Arc::new(Semaphore::new(self.cfg.concurrency));
+        let router = self.router();
         let tasks = prompts.map(|messages| {
             let sem = sem.clone();
+            let router = router.clone();
             async move {
                 let _permit = sem.acquire_owned().await.map_err(|e| Error::Internal(e.to_string()))?;
-                self.router.chat(&messages, opts).await.map(|c| c.text)
+                router.chat(&messages, opts).await.map(|c| c.text)
             }
         });
         try_join_all(tasks).await

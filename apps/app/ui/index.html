@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PDF Kernel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <button id="menu-toggle" class="icon-btn only-mobile" aria-label="Show documents">☰</button>
+    <h1>PDF Kernel</h1>
+    <div class="spacer"></div>
+    <button id="settings-btn" class="icon-btn" aria-label="AI settings" title="AI settings">⚙</button>
+    <div class="account">
+      <button id="account-btn" class="account-btn" aria-haspopup="menu" aria-expanded="false">
+        <span id="account-avatar" class="avatar"></span>
+        <span id="account-label" class="account-label"></span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <div id="account-menu" class="menu" role="menu" hidden></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside id="sidebar" class="sidebar">
+      <label class="upload">
+        <input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
+        <strong>+ Add PDF</strong>
+        <span class="muted only-desktop">or drop files anywhere</span>
+      </label>
+      <ul id="docs" class="docs" aria-label="Documents"></ul>
+      <p id="docs-empty" class="muted center" hidden>No documents yet.</p>
+      <p id="sync-status" class="sync-status muted"></p>
+    </aside>
+    <div id="scrim" class="scrim" hidden></div>
+
+    <main>
+      <div id="empty" class="empty">
+        <p>Add a PDF to summarize it or ask questions.</p>
+        <p class="muted" id="empty-hint"></p>
+      </div>
+
+      <section id="workspace" hidden>
+        <header class="doc-header">
+          <div class="doc-title">
+            <h2 id="doc-name"></h2>
+            <p id="doc-meta" class="muted"></p>
+          </div>
+          <div class="doc-actions">
+            <div class="styles" role="group" aria-label="Summarize">
+              <button data-style="brief">Brief</button>
+              <button data-style="detailed">Detailed</button>
+              <button data-style="bullets">Bullets</button>
+            </div>
+            <button id="delete-doc" class="danger-text" title="Move to trash">Delete</button>
+          </div>
+        </header>
+
+        <div id="thread" class="thread" aria-live="polite"></div>
+
+        <form id="ask" class="ask">
+          <input id="question" placeholder="Ask about this document…" autocomplete="off" enterkeyhint="send">
+          <button type="submit" class="primary">Ask</button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="settings">
+    <form method="dialog" id="settings-form">
+      <h2>AI settings</h2>
+      <p class="muted">Your keys stay on this device, in <span id="secret-storage">secure storage</span>. Put one key per line; they're used in rotation.</p>
+
+      <fieldset>
+        <legend>Groq</legend>
+        <label>API keys <textarea name="groq_keys" rows="3" spellcheck="false" placeholder="gsk_…"></textarea></label>
+        <label>Model <input name="groq_model" spellcheck="false"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Google AI Studio (Gemini)</legend>
+        <label>API keys <textarea name="gemini_keys" rows="3" spellcheck="false" placeholder="AIza…"></textarea></label>
+        <label>Model <input name="gemini_model" spellcheck="false"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>LM Studio (local)</legend>
+        <label class="check"><input type="checkbox" name="lmstudio_enabled"> Enable</label>
+        <label>Server URL <input name="lmstudio_url" spellcheck="false"></label>
+        <label>Model <input name="lmstudio_model" spellcheck="false" placeholder="Leave empty to use the loaded model"></label>
+      </fieldset>
+
+      <label>Try providers in this order
+        <select name="order">
+          <option value="groq,gemini,lmstudio">Groq → Gemini → LM Studio</option>
+          <option value="gemini,groq,lmstudio">Gemini → Groq → LM Studio</option>
+          <option value="lmstudio,groq,gemini">LM Studio → Groq → Gemini</option>
+          <option value="lmstudio,gemini,groq">LM Studio → Gemini → Groq</option>
+        </select>
+      </label>
+
+      <p id="provider-status" class="muted"></p>
+      <div class="dialog-actions">
+        <button value="cancel" formnovalidate>Cancel</button>
+        <button id="settings-save" value="save" class="primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="signin">
+    <h2>Finish signing in</h2>
+    <p>A browser window opened. Choose your Google account and allow access to files created by PDF Kernel.</p>
+    <p class="muted">On a phone, come back to this app when the browser says you're signed in.</p>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

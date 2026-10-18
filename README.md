@@ -78,34 +78,50 @@ It binds to `127.0.0.1` by default and allows no browser origins unless you
 pass `--cors-origin`. For a binary with no server code at all, build with
 `cargo build --release -p pdf-kernel-cli --no-default-features`.
 
-## Desktop app (Tauri)
+## App (Linux, Windows, macOS, Android)
 
-`apps/desktop` is a reference UI. It calls the core in-process, with no server.
+`apps/app` is the reference app, built with Tauri. It calls the core
+in-process, with no server.
 
+- **Accounts:** sign in with any number of Google accounts and switch between
+  them, or use "This device" with no sign-in.
+- **Sync:** each Google account's PDFs and chats are saved to its own Drive
+  (`PDF Kernel/` folder), so a conversation started on a laptop continues on
+  a phone. Messages typed offline upload later; edits from two devices merge.
+- **Keys:** each user enters their own Groq / Gemini keys (or LM Studio URL)
+  in Settings. They are stored in the OS keychain and never synced.
+
+Google sign-in needs a free OAuth client: [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md).
+
+**Download builds:** every push to `main` builds Linux (`.deb`, `.rpm`,
+`.AppImage`), Windows (`.msi`, `.exe`) and Android (`.apk`) in GitHub Actions
+(see the run's *Artifacts*). Push a tag like `v0.1.0` to publish a release.
+
+**Build locally:**
 ```sh
 cargo install tauri-cli --version '^2'
-cd apps/desktop/src-tauri
-cargo tauri icon icons/icon.png   # optional: generate every platform icon size
+cd apps/app/src-tauri
 cargo tauri dev                   # run
-cargo tauri build                 # .deb/.AppImage/.rpm, .dmg/.app, .msi/.exe
+cargo tauri build                 # installers for this OS
+cargo tauri android init          # once; needs Android SDK + NDK
+cargo tauri android build --apk
 ```
 
 Linux build deps (Debian/Ubuntu):
 `sudo apt install libwebkit2gtk-4.1-dev build-essential libssl-dev libayatana-appindicator3-dev librsvg2-dev`
 
-The packaged app reads keys from the user config dir `.env` (see `.env.example`).
-
 ## Layout
 
 ```
-crates/core   engine library (all logic)
+crates/core   engine library (all AI/PDF logic)
+crates/cloud  optional: Google sign-in, keychain, Drive storage, chat sync
 crates/cli    pdfk: CLI, stdio protocol, HTTP API
 crates/ffi    C ABI + header
-apps/desktop  Tauri reference app (ui/ is plain HTML/CSS/JS, no build step)
-docs/         protocol reference
+apps/app      Tauri app (ui/ is plain HTML/CSS/JS, no build step)
+docs/         protocol reference, Google setup
 ```
 
 ## Limits
 
 - Scanned PDFs (images only) have no text layer. Run OCR first and use `load_text`.
-- Documents are held in memory for the life of the process.
+- The CLI, stdio, HTTP and FFI front-ends keep documents in memory for the life of the process; the app persists them through `crates/cloud`.

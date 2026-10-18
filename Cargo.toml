@@ -1,8 +1,8 @@
 [workspace]
 resolver = "2"
-members = ["crates/core", "crates/cli", "crates/ffi"]
+members = ["crates/core", "crates/cli", "crates/ffi", "crates/cloud"]
 # The Tauri app needs system webview libraries, so it builds on its own.
-exclude = ["apps/desktop/src-tauri"]
+exclude = ["apps/app/src-tauri"]
 
 [workspace.package]
 version = "0.1.0"
@@ -11,6 +11,7 @@ rust-version = "1.80"
 
 [workspace.dependencies]
 pdf-kernel = { path = "crates/core" }
+pdf-kernel-cloud = { path = "crates/cloud" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs", "io-std", "io-util", "net"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
