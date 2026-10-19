@@ -78,6 +78,9 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: android-actions/setup-android@v3
+        with:
+          # The default also installs the retired "tools" package, which fails.
+          packages: platform-tools
       - name: Android SDK packages
         run: |
           sdkmanager --install "ndk;${NDK_VERSION}" "platforms;android-34" "build-tools;34.0.0"
@@ -93,7 +96,10 @@ jobs:
           node-version: 20
       - name: Generate Android project
         working-directory: apps/app/src-tauri
-        run: npx --yes @tauri-apps/cli@2 android init --ci
+        run: |
+          npx --yes @tauri-apps/cli@2 android init --ci
+          # Replace the template launcher icons with ours.
+          npx --yes @tauri-apps/cli@2 icon icons/icon.png
       - name: Build APK
         working-directory: apps/app/src-tauri
         run: npx --yes @tauri-apps/cli@2 android build --apk --ci --target aarch64 --target armv7 --target x86_64
