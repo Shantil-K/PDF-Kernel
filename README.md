@@ -99,12 +99,12 @@ Google sign-in needs a free OAuth client: [docs/GOOGLE_SETUP.md](docs/GOOGLE_SET
 
 **Build locally:**
 ```sh
-cargo install tauri-cli --version '^2'
-cd apps/app/src-tauri
-cargo tauri dev                   # run
-cargo tauri build                 # installers for this OS
-cargo tauri android init          # once; needs Android SDK + NDK
-cargo tauri android build --apk
+cd apps/app
+npm ci                                  # installs the pinned Tauri CLI
+npm run tauri dev                       # run
+npm run tauri build                     # installers for this OS
+npm run tauri -- android init           # once; needs Android SDK + NDK
+npm run tauri -- android build --apk
 ```
 
 Linux build deps (Debian/Ubuntu):

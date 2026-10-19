@@ -1,0 +1,12 @@
+{
+  "name": "pdf-kernel-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Build tooling for the PDF Kernel app (the UI itself needs no build step).",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}
